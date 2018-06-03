@@ -14,6 +14,7 @@ import com.felipemendes.cursospring.repositories.ClienteRepository;
 import com.felipemendes.cursospring.repositories.ItemPedidoRepository;
 import com.felipemendes.cursospring.repositories.PagamentoRepository;
 import com.felipemendes.cursospring.repositories.PedidoRepository;
+import com.felipemendes.cursospring.services.email.EmailService;
 import com.felipemendes.cursospring.services.exceptions.ObjectNotFoundException;
 
 @Service
@@ -36,6 +37,9 @@ public class PedidoService {
 	
 	@Autowired
 	private ClienteRepository clienteRepository;
+	
+	@Autowired
+	private EmailService emailService;
 	
 	public Pedido buscar(Integer id) {
 		Pedido obj = repo.findOne(id);
@@ -75,7 +79,7 @@ public class PedidoService {
 		
 		ItemPedidoRepository.save(obj.getItens());
 		
-		System.out.println(obj);
+		emailService.sendOrderConfirmationEmail(obj);
 		
 		return obj;
 	}
