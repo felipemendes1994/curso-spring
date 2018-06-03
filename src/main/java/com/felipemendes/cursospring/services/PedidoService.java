@@ -4,11 +4,13 @@ import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.felipemendes.cursospring.domain.ItemPedido;
 import com.felipemendes.cursospring.domain.PagamentoComBoleto;
 import com.felipemendes.cursospring.domain.Pedido;
 import com.felipemendes.cursospring.domain.enums.EstadoPagamento;
+import com.felipemendes.cursospring.repositories.ClienteRepository;
 import com.felipemendes.cursospring.repositories.ItemPedidoRepository;
 import com.felipemendes.cursospring.repositories.PagamentoRepository;
 import com.felipemendes.cursospring.repositories.PedidoRepository;
@@ -32,6 +34,9 @@ public class PedidoService {
 	@Autowired
 	private ProdutoService produtoService;
 	
+	@Autowired
+	private ClienteRepository clienteRepository;
+	
 	public Pedido buscar(Integer id) {
 		Pedido obj = repo.findOne(id);
 		
@@ -42,9 +47,12 @@ public class PedidoService {
 		return obj;
 	}
 	
+	@Transactional
 	public Pedido insert(Pedido obj) {
 		obj.setId(null);
 		obj.setInstante(new Date());
+		
+		obj.setCliente(clienteRepository.findOne(obj.getCliente().getId()));
 		
 		obj.getPagamento().setEstado(EstadoPagamento.PENDENTE);
 		obj.getPagamento().setPedido(obj);
@@ -60,11 +68,14 @@ public class PedidoService {
 		
 		for(ItemPedido ip : obj.getItens()) {
 			ip.setDesconto(0.0);
-			ip.setPreco(produtoService.buscar(ip.getProduto().getId()).getPreco());
+			ip.setProduto(produtoService.buscar(ip.getProduto().getId()));
+			ip.setPreco(ip.getProduto().getPreco());
 			ip.setPedido(obj);
 		}
 		
 		ItemPedidoRepository.save(obj.getItens());
+		
+		System.out.println(obj);
 		
 		return obj;
 	}
